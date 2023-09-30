@@ -1,4 +1,4 @@
-# Proyecto Integral N°2
+# Proyecto Integral N°3
 
 El presente documento, es el **Proyecto Integral N°3** de ***Argentina Program 4.0***. Esta es una pequeña solución informática que sirve registrar los contenidos de una plataforma de streaming.
 La misma, fue diseñada y construida sobre una arquitectura API RESTful, la cual está desarrollada bajo las restricciones y recomendaciones de REST, además, implementa buenas prácticas de programación.
