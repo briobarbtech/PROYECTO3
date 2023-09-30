@@ -11,14 +11,13 @@ var controller = {
             }
             //if (req.query.genre) where.genreName = req.query.genre
             if (req.query.category) where.categoryID = req.query.category
-            await content.Movie.findAll({ where: where ,include: [content.Category, content.Genre, content.Actor]}).then((catalogue) => {
-                
-                if(!req.query.genre) return res.status(200).send({message:'Ok!', content: catalogue})
+            await content.Movie.findAll({ where: where, include: [content.Category, content.Genre, content.Actor] }).then((catalogue) => {
+                if (!req.query.genre) return res.status(200).send({ message: 'Ok!', content: catalogue })
                 var response = []
                 catalogue.forEach(content => {
-                    content['Genres'].forEach(genres =>{
+                    content['Genres'].forEach(genres => {
                         //console.log(genres['ID'])
-                        if(genres['ID'] == Number(req.query.genre)) response.push(content)
+                        if (genres['ID'] == Number(req.query.genre)) response.push(content)
                     })
                 });
 
@@ -34,11 +33,16 @@ var controller = {
     getCatalogueById: async (req, res) => {
         try {
             const { id } = req.params;
-            const catalogue = await content.Movie.findByPk(id);
+            if(!Number.isInteger(Number(id))) return res.status(400).send({message: 'Error: ID must be a number'})
+            await content.Movie.findByPk(id).then((catalogue) => {
+                if (!catalogue) return res.status(404).send({ message: 'Not Found'})
+                res.status(200).send({ message: "Ok!", content: catalogue })
+            }).catch(e => {
+                res.status(500).send({ message: 'Something went wrong' })
+            });
 
-            res.status(200).send({ message: "Ok!", content: catalogue })
         } catch (err) {
-            res.status(400).send({ message: "Error!", content: err.message })
+            res.status(500).send({ message: "Error!", content: err.message })
         }
     },
     postCatalogue: async (req, res) => {
@@ -104,7 +108,7 @@ var controller = {
     },
     getCategory: async (req, res) => {
         try {
-        
+
 
             await content.Category.findAll().then((category) => {
                 res.status(200).send({ message: 'Ok!', content: category })
