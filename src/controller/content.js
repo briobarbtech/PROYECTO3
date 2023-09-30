@@ -1,18 +1,32 @@
-import content from "../models/content.js";
-
+import { query } from "express";
+import content from "../models/relations.js";
+import { Op } from "sequelize";
 
 var controller = {
     getCatalogue: async (req, res) => {
         try {
             const where = {}
-            if (req.query.name) where.title = req.query.name
-            if (req.query.genre) where.genreName = req.query.genre
-            if (req.query.category) where.categoryName = req.query.category
+            if (req.query.name) where.title = {
+                [Op.like]: `%${req.query.name}%`
+            }
+            //if (req.query.genre) where.genreName = req.query.genre
+            if (req.query.category) where.categoryID = req.query.category
+            await content.Movie.findAll({ where: where ,include: [content.Category, content.Genre, content.Actor]}).then((catalogue) => {
+                
+                if(!req.query.genre) return res.status(200).send({message:'Ok!', content: catalogue})
+                var response = []
+                catalogue.forEach(content => {
+                    content['Genres'].forEach(genres =>{
+                        //console.log(genres['ID'])
+                        if(genres['ID'] == Number(req.query.genre)) response.push(content)
+                    })
+                });
 
+                res.status(200).send({ message: "Ok!", content: response })
+            }).catch(e => {
+                return res.status(400).send({ message: 'Something went wrong', content: e.message })
+            });
 
-            const catalogue = await content.movie.findAll({ where: where });
-
-            res.status(200).send({ message: "Ok!", content: catalogue })
         } catch (err) {
             res.status(400).send({ message: "Error!", content: err.message })
         }
@@ -20,7 +34,7 @@ var controller = {
     getCatalogueById: async (req, res) => {
         try {
             const { id } = req.params;
-            const catalogue = await content.movie.findByPk(id);
+            const catalogue = await content.Movie.findByPk(id);
 
             res.status(200).send({ message: "Ok!", content: catalogue })
         } catch (err) {
@@ -30,18 +44,16 @@ var controller = {
     postCatalogue: async (req, res) => {
         try {
             const { title, summary, season, categoryID } = req.body
-
             if (!title || !summary || !season || !categoryID) throw new Error('Data is missing')
-            await content.movie.create({ title, summary, season, categoryID }).then((newCatalogue) => {
+            await content.Movie.create({ title, summary, season, categoryID }).then((newCatalogue) => {
                 return res.status(201).send({ message: 'Created!', content: newCatalogue })
             }).catch(e => {
-                console.log(e.message)
-                return res.status(400).send({ message: 'Something went wrong' })
+                return res.status(400).send({ message: 'Something went wrong', content: e.message })
 
             })
         } catch (err) {
             console.log(err.message)
-            return res.status(400).send({ message: 'Something went wrong', content: err.message })
+            return res.status(500).send({ message: 'Something went wrong', content: err.message })
 
         }
     },
@@ -57,11 +69,11 @@ var controller = {
                 if (season) catalogueUpdated.season = season
                 if (categoryID) catalogueUpdated.categoryID = categoryID
 
-                await content.movie.update(catalogueUpdated, { where: { movieID: Number(id) } }).then(() => {
+                await content.Movie.update(catalogueUpdated, { where: { movieID: Number(id) } }).then(() => {
                     return res.status(204).send({ message: 'Updated!' })
                 }).catch(e => {
                     console.log(e.message)
-                    return res.status(400).send({ message: 'Something went wrong' })
+                    return res.status(500).send({ message: 'Something went wrong' })
 
                 })
             } else {
@@ -77,17 +89,14 @@ var controller = {
         const { id } = req.params
         if (!id) throw new Error('Id is undefined')
         try {
-            await content.movie.destroy({
-                where: {
-                    movieID: id
-                }
-            }).then(() => res.status(200).send({ message: 'Deleted!' })).catch(e => res.status(400).send({
-                message: 'Something went wrong',
-                content: e.message
-            }))
+            await content.Movie.destroy({ where: { movieID: id } })
+                .then(() => res.status(200).send({ message: 'Deleted!' }))
+                .catch(e => res.status(400).send({
+                    message: 'Something went wrong',
+                    content: e.message
+                }))
         } catch (err) {
-            console.log(err.message)
-            return res.status(400).send({
+            res.status(500).send({
                 message: "Something went wrong",
                 content: err.message
             })
@@ -95,15 +104,16 @@ var controller = {
     },
     getCategory: async (req, res) => {
         try {
-            const categoryName = req.query.categoryName
-            await content.category.findOne({ where: { categoryName: categoryName } }).then((category) => {
+        
+
+            await content.Category.findAll().then((category) => {
                 res.status(200).send({ message: 'Ok!', content: category })
             }).catch(e => {
                 return res.status(400).send({ message: "Not found:", content: e.message })
             })
 
         } catch (err) {
-            console.log(err.message)
+            return res.status(400).send({ message: 'Something went wrong', content: err.message })
         }
     }
 }

@@ -10,18 +10,24 @@ const connection = {
     startConnection: async () => {
         try {
             return await db.authenticate()
-                .then(() => {
-                    console.log("Connection to DB success!")
-                    return db;
+                .then(async () => {
+                    return await db.sync({force: true}).then(() => {
+                        console.log("Connection to DB success!")
+                        return db;
+                    }).catch(e => {
+                        console.log(e.message)
+                    })
                 })
                 .catch(e => {
                     console.log(e.message)
+                    throw new Error(e.message)
                 });
 
         } catch (err) {
             console.log("Something went wrong!" + err)
         }
     },
+    connection: db,
     closeConnection: async () => {
         try {
             await db.close();
