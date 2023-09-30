@@ -13,9 +13,6 @@ const Movie =  db.define('Movie', {
         title: {
             type: DataTypes.STRING,
             allowNull: false,
-        },categoryID:{
-            type: DataTypes.INTEGER,
-            allowNull: false
         },
         summary: {
             type: DataTypes.STRING,
@@ -23,8 +20,11 @@ const Movie =  db.define('Movie', {
         },
         season: {
             type: DataTypes.INTEGER
+        },
+        trailer:{
+            type: DataTypes.STRING,
+            allowNull: true
         }
-
     }, { tableName: 'movie', timestamps: false })
 
 

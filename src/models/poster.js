@@ -2,7 +2,7 @@ import connection from "../services/connection.js";
 import { DataTypes } from "sequelize";
 
 const db = connection.connection;
-    const poster = db.define('poster', {
+    const Poster = db.define('Poster', {
         ID: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -18,4 +18,4 @@ const db = connection.connection;
             allowNull: false,
         }
     }, { tableName: 'poster', timestamps: false })
-export default poster;
+export default Poster;

@@ -11,7 +11,11 @@ var controller = {
             }
             //if (req.query.genre) where.genreName = req.query.genre
             if (req.query.category) where.categoryID = req.query.category
-            await content.Movie.findAll({ where: where, include: [content.Category, content.Genre, content.Actor] }).then((catalogue) => {
+            await content.Movie.findAll({ where: where, include: [content.Category, content.Genre, content.Actor, content.Poster] }).then((catalogue) => {
+                catalogue.forEach(content => {
+                   content['Posters'][0]['link']= 'http://'+process.env.HOST+process.env.PORT+content['Posters'][0]['link']
+        
+                });
                 if (!req.query.genre) return res.status(200).send({ message: 'Ok!', content: catalogue })
                 var response = []
                 catalogue.forEach(content => {
